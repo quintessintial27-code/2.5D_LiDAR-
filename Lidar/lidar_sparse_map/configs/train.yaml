@@ -1,0 +1,44 @@
+# ─── Training Config ──────────────────────────────────────────────────────────
+defaults:
+  - model: backbone
+  - dataset: kitti
+
+# Hydra output dir
+hydra:
+  run:
+    dir: outputs/${now:%Y-%m-%d_%H-%M-%S}
+
+# Training
+trainer:
+  max_epochs: 80
+  accelerator: cpu
+  devices: 1
+  precision: 32
+  gradient_clip_val: 10.0
+  log_every_n_steps: 10
+  enable_progress_bar: true
+  enable_model_summary: true
+
+# Optimiser
+optimizer:
+  name: adamw
+  lr: 0.003
+  weight_decay: 0.01
+  betas: [0.9, 0.999]
+
+# LR scheduler
+scheduler:
+  name: cosine
+  T_max: 80
+  eta_min: 0.0001
+
+# Checkpointing
+checkpoint:
+  monitor: val/mAP
+  mode: max
+  save_top_k: 3
+  filename: epoch{epoch:02d}-mAP{val/mAP:.3f}
+
+# Logging
+seed: 42
+fast_dev_run: false   # set true to run 1 batch for smoke test

@@ -1,0 +1,48 @@
+# ─── Sparse CNN Backbone Config (CPU-optimised) ───────────────────────────────
+name: adaptive_sparse_lidar
+
+# Voxel grid parameters
+voxel:
+  # Coarse zone (background, sparse areas)
+  coarse_size: [0.20, 0.20, 0.20]   # metres
+  # Fine zone (dynamic / dense areas)
+  fine_size: [0.10, 0.10, 0.10]
+  # Density threshold (pts/m³) above which fine resolution kicks in
+  density_threshold: 15
+  # Point cloud range [x_min, y_min, z_min, x_max, y_max, z_max]
+  pc_range: [-40.0, -40.0, -3.0, 40.0, 40.0, 3.0]
+  max_voxels: 15000
+  max_points_per_voxel: 20
+
+# Sparse Encoder stages (pure PyTorch — no CUDA required)
+encoder:
+  in_channels: 4          # x, y, z, intensity
+  stage_channels: [16, 32, 64]
+  kernel_size: 3
+  # Stage types: "subm" = SubManifold (preserves sparsity) | "sparse" = downsample
+  stage_types: [subm, sparse, sparse]
+  strides: [1, 2, 2]
+
+# BEV Projection
+bev:
+  collapse_mode: max       # max-pool along Z axis
+  fpn_channels: 64
+  output_stride: 4         # final BEV is 1/4 of input spatial size
+
+# Height Map Head
+height_map:
+  out_channels: 1
+  loss_weight: 1.0
+
+# Detection Head (CenterPoint-style, anchor-free)
+detection:
+  num_classes: 3            # Car, Pedestrian, Cyclist
+  heatmap_channels: 64
+  regression_channels: 64
+  # Regression targets: offset_xy(2), z(1), dims_lwh(3), yaw(2), vel_xy(2)
+  reg_channels: 10
+  loss_heatmap_weight: 1.0
+  loss_reg_weight: 2.0
+  score_threshold: 0.3
+  nms_iou_threshold: 0.5
+  max_detections: 50

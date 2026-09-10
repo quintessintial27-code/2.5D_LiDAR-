@@ -1,0 +1,52 @@
+# ─── KITTI Dataset Config ─────────────────────────────────────────────────────
+name: kitti
+
+# Path to KITTI root (update this after downloading)
+# Expected structure:
+#   data/kitti/
+#     training/
+#       velodyne/   ← .bin point cloud files
+#       label_2/    ← .txt annotation files
+#       calib/      ← .txt calibration files
+#     ImageSets/
+#       train.txt
+#       val.txt
+root_dir: data/kitti
+
+# Classes to detect (KITTI naming)
+classes: [Car, Pedestrian, Cyclist]
+class_map:
+  Car: 0
+  Pedestrian: 1
+  Cyclist: 2
+  Van: 0           # merge Van → Car
+  Truck: -1        # ignore
+  Person_sitting: 1
+
+# Frame differencing for dynamic object detection
+frame_diff:
+  enabled: true
+  num_frames: 2           # use current + 1 previous frame
+  diff_threshold: 0.15    # min displacement (m) to flag as dynamic
+
+# Filtering
+difficulty_filter: [0, 1, 2]   # easy=0, moderate=1, hard=2
+min_points_in_box: 5
+
+# Data augmentation (training only)
+augmentation:
+  random_flip_x: true
+  random_rotation:
+    enabled: true
+    range: [-0.3927, 0.3927]   # ±22.5 degrees
+  random_scale:
+    enabled: true
+    range: [0.95, 1.05]
+  point_dropout:
+    enabled: true
+    ratio: 0.05
+
+# Dataloader
+batch_size: 1          # keep low for 8 GB RAM
+num_workers: 0         # 0 = main process only (safe for Windows + Celeron)
+pin_memory: false      # no GPU
